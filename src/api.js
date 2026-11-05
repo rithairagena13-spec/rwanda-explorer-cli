@@ -1,5 +1,4 @@
 
-
 const API_URL =
   'https://geodata.rw/server/rest/services/basemap/Tourism_POI/MapServer/0/query'
 
@@ -32,10 +31,14 @@ export async function getRwandaPlaces() {
     }
 
     return data.features
-      .filter((place) => place.attributes?.name)
+      .filter(
+        (place) =>
+          typeof place.attributes?.name === 'string' &&
+          place.attributes.name.trim() !== ''
+      )
       .map((place, index) => ({
         id: place.attributes.OBJECTID ?? place.attributes.objectid ?? index + 1,
-        name: place.attributes.name,
+        name: place.attributes.name.trim(),
         category: place.attributes.type || 'Tourist attraction',
         lat: place.geometry?.y ?? null,
         lon: place.geometry?.x ?? null
