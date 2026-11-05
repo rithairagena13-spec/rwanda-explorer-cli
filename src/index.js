@@ -19,6 +19,9 @@ Options:
   -h, --help       Show help
   -v, --version    Show version
 `)
+} else if (positionals[0] === 'places') {
+  console.log('Explore interesting places across Rwanda.')
 } else {
-  console.log({ values, positionals })
+  console.error('Unknown command. Run --help to see available commands.')
+  process.exitCode = 1
 }
