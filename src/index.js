@@ -1,36 +1,78 @@
+#!/usr/bin/env node
 
-import { readFile, writeFile } from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { getArguments } from './commands.js'
+import { getPlaces } from './places.js'
+import { getRwandaPlaces } from './api.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const { values, positionals } = getArguments()
 
-const dataFile = path.join(__dirname, 'data', 'places.json')
-
-export async function getPlaces() {
-  try {
-    const data = await readFile(dataFile, 'utf-8')
-    const places = JSON.parse(data)
-
-    if (!Array.isArray(places)) {
-      throw new Error('Places data must be an array.')
-    }
-
-    return places
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      throw new Error('Places data file was not found.')
-    }
-
-    if (error instanceof SyntaxError) {
-      throw new Error('Places data contains invalid JSON.')
-    }
-
-    throw error
+async function main() {
+  if (values.version) {
+    console.log('Rwanda Explorer CLI v1.0.0')
+    return
   }
+
+  if (values.help) {
+    console.log(`
+Rwanda Explorer CLI
+
+Usage:
+  rwanda-explorer <command> [options]
+
+Commands:
+  places       Explore places across Rwanda
+
+Options:
+  --online     Fetch live Rwanda attractions
+  -h, --help   Show help
+  -v, --version Show version
+`)
+    return
+  }
+
+  if (positionals[0] === 'places') {
+    if (values.online) {
+      console.log('\nDiscovering tourist attractions in Rwanda...\n')
+
+      const places = await getRwandaPlaces()
+
+      if (places.length === 0) {
+        console.log('No tourist attractions were found.')
+        return
+      }
+
+      console.log(`Found ${places.length} places:\n`)
+
+      places.forEach((place, index) => {
+        console.log(`
+${index + 1}. ${place.name}
+   Category: ${place.category}
+   Coordinates: ${place.lat}, ${place.lon}
+`)
+      })
+
+      return
+    }
+
+    const places = await getPlaces()
+
+    places.forEach((place) => {
+      console.log(`
+${place.id}. ${place.name}
+   Location: ${place.location}
+   Category: ${place.category}
+   Description: ${place.description}
+`)
+    })
+
+    return
+  }
+
+  console.error('Unknown command. Run --help to see available commands.')
+  process.exitCode = 1
 }
 
-export async function savePlaces(places) {
-  await writeFile(dataFile, JSON.stringify(places, null, 2))
-}
+main().catch((error) => {
+  console.error(`Error: ${error.message}`)
+  process.exitCode = 1
+})
