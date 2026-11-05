@@ -1,4 +1,5 @@
-import { parseArgs } from 'node:util';
+import { parseArgs } from 'node:util'
+
 export function getArguments() {
   const { values, positionals } = parseArgs({
     options: {
@@ -9,6 +10,9 @@ export function getArguments() {
       version: {
         type: 'boolean',
         short: 'v'
+      },
+      online: {
+        type: 'boolean'
       }
     },
     allowPositionals: true
