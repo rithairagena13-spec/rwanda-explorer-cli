@@ -7,9 +7,11 @@
   "bin": {
     "rwanda-explorer": "./src/index.js"
   },
-  "scripts": {
-    "start": "node src/index.js"
-  },
+"scripts": {
+  "start": "node src/index.js",
+  "test:places": "node --input-type=module -e \"import { getPlaces } from './src/places.js'; console.log(await getPlaces())\"",
+  "test:save": "node --input-type=module -e \"import { getPlaces, savePlaces } from './src/places.js'; const places = await getPlaces(); await savePlaces(places); console.log('Places saved successfully!')\""
+},
   "keywords": ["rwanda", "explorer", "places", "cli"],
   "author": "Ritha and Aliance",
   "license": "ISC"

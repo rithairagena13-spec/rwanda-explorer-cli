@@ -1,5 +1,7 @@
-#!/usr/bin/env node 
+#!/usr/bin/env node
+
 import { getArguments } from './commands.js'
+import { getPlaces } from './places.js'
 
 const { values, positionals } = getArguments()
 
@@ -20,7 +22,16 @@ Options:
   -v, --version    Show version
 `)
 } else if (positionals[0] === 'places') {
-  console.log('Explore interesting places across Rwanda.')
+  const places = await getPlaces()
+
+  places.forEach((place) => {
+    console.log(`
+${place.id}. ${place.name}
+   Location: ${place.location}
+   Category: ${place.category}
+   Description: ${place.description}
+`)
+  })
 } else {
   console.error('Unknown command. Run --help to see available commands.')
   process.exitCode = 1
