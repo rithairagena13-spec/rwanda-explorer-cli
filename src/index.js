@@ -1,38 +1,36 @@
-#!/usr/bin/env node
 
-import { getArguments } from './commands.js'
-import { getPlaces } from './places.js'
+import { readFile, writeFile } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const { values, positionals } = getArguments()
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-if (values.version) {
-  console.log('Rwanda Explorer CLI v1.0.0')
-} else if (values.help) {
-  console.log(`
-Rwanda Explorer CLI
+const dataFile = path.join(__dirname, 'data', 'places.json')
 
-Usage:
-  rwanda-explorer <command> [options]
+export async function getPlaces() {
+  try {
+    const data = await readFile(dataFile, 'utf-8')
+    const places = JSON.parse(data)
 
-Commands:
-  places       Explore places across Rwanda
+    if (!Array.isArray(places)) {
+      throw new Error('Places data must be an array.')
+    }
 
-Options:
-  -h, --help       Show help
-  -v, --version    Show version
-`)
-} else if (positionals[0] === 'places') {
-  const places = await getPlaces()
+    return places
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error('Places data file was not found.')
+    }
 
-  places.forEach((place) => {
-    console.log(`
-${place.id}. ${place.name}
-   Location: ${place.location}
-   Category: ${place.category}
-   Description: ${place.description}
-`)
-  })
-} else {
-  console.error('Unknown command. Run --help to see available commands.')
-  process.exitCode = 1
+    if (error instanceof SyntaxError) {
+      throw new Error('Places data contains invalid JSON.')
+    }
+
+    throw error
+  }
+}
+
+export async function savePlaces(places) {
+  await writeFile(dataFile, JSON.stringify(places, null, 2))
 }
