@@ -1,0 +1,21 @@
+
+{
+  "name": "rwanda-explorer-cli",
+  "version": "1.0.0",
+  "description": "A command-line tool for discovering interesting places across Rwanda.",
+  "type": "module",
+  "bin": {
+    "rwanda-explorer": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "rwanda",
+    "explorer",
+    "places",
+    "cli"
+  ],
+  "author": "Ritha && Aliance",
+  "license": "ISC"
+}
