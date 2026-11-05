@@ -10,12 +10,7 @@
   "scripts": {
     "start": "node src/index.js"
   },
-  "keywords": [
-    "rwanda",
-    "explorer",
-    "places",
-    "cli"
-  ],
-  "author": "Ritha && Aliance",
+  "keywords": ["rwanda", "explorer", "places", "cli"],
+  "author": "Ritha and Aliance",
   "license": "ISC"
 }
