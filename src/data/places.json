@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "name": "Lake Kivu",
+    "location": "Western Province",
+    "category": "Nature",
+    "description": "A beautiful lake known for its scenic views and relaxing atmosphere."
+  },
+  {
+    "id": 2,
+    "name": "Volcanoes National Park",
+    "location": "Northern Province",
+    "category": "National Park",
+    "description": "A famous national park known for its mountain landscapes and wildlife."
+  },
+  {
+    "id": 3,
+    "name": "King's Palace Museum",
+    "location": "Nyanza, Southern Province",
+    "category": "Culture",
+    "description": "A museum showcasing Rwanda's traditional royal history."
+  },
+  {
+    "id": 4,
+    "name": "Nyungwe National Park",
+    "location": "Southwestern Rwanda",
+    "category": "Nature",
+    "description": "A protected rainforest famous for its biodiversity and canopy walkway."
+  },
+  {
+    "id": 5,
+    "name": "Kigali Genocide Memorial",
+    "location": "Kigali",
+    "category": "History",
+    "description": "A memorial preserving the history of the 1994 Genocide against the Tutsi."
+  }
+]

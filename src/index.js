@@ -1,27 +1,36 @@
-#!/usr/bin/env node 
-import { getArguments } from './commands.js'
 
-const { values, positionals } = getArguments()
+import { readFile, writeFile } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-if (values.version) {
-  console.log('Rwanda Explorer CLI v1.0.0')
-} else if (values.help) {
-  console.log(`
-Rwanda Explorer CLI
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-Usage:
-  rwanda-explorer <command> [options]
+const dataFile = path.join(__dirname, 'data', 'places.json')
 
-Commands:
-  places       Explore places across Rwanda
+export async function getPlaces() {
+  try {
+    const data = await readFile(dataFile, 'utf-8')
+    const places = JSON.parse(data)
 
-Options:
-  -h, --help       Show help
-  -v, --version    Show version
-`)
-} else if (positionals[0] === 'places') {
-  console.log('Explore interesting places across Rwanda.')
-} else {
-  console.error('Unknown command. Run --help to see available commands.')
-  process.exitCode = 1
+    if (!Array.isArray(places)) {
+      throw new Error('Places data must be an array.')
+    }
+
+    return places
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error('Places data file was not found.')
+    }
+
+    if (error instanceof SyntaxError) {
+      throw new Error('Places data contains invalid JSON.')
+    }
+
+    throw error
+  }
+}
+
+export async function savePlaces(places) {
+  await writeFile(dataFile, JSON.stringify(places, null, 2))
 }
