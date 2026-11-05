@@ -1,3 +1,6 @@
 #!/usr/bin/env node 
+import { getArguments } from './commands.js'
 
-console.log("Welcome to Rwanda Explorer CLI!");
+const { values, positionals } = getArguments()
+
+console.log(values, positionals);
