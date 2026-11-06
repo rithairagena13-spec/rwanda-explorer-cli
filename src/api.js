@@ -1,3 +1,4 @@
+import { CliError } from './ui.js'
 
 const API_URL =
   'https://geodata.rw/server/rest/services/basemap/Tourism_POI/MapServer/0/query'
@@ -9,6 +10,7 @@ export async function getRwandaPlaces() {
       outFields: 'name,type,source',
       returnGeometry: 'true',
       outSR: '4326',
+      resultRecordCount: '200',
       f: 'json'
     })
 
@@ -43,15 +45,17 @@ export async function getRwandaPlaces() {
         lat: place.geometry?.y ?? null,
         lon: place.geometry?.x ?? null
       }))
-  } catch (error) {
+    } catch (error) {
+    if (error instanceof CliError) throw error
+
     if (error.name === 'TimeoutError') {
-      throw new Error('The request timed out. Please try again.')
+      throw new CliError('The request timed out. Please try again.', 2)
     }
 
     if (error instanceof TypeError) {
-      throw new Error('Network error. Check your internet connection.')
+      throw new CliError('Network error. Check your internet connection.', 2)
     }
 
-    throw error
+    throw new CliError(error.message, 2)
   }
 }
