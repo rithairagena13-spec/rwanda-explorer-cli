@@ -1,22 +1,19 @@
 import { parseArgs } from 'node:util'
+import { CliError } from './ui.js'
 
 export function getArguments() {
-  const { values, positionals } = parseArgs({
-    options: {
-      help: {
-        type: 'boolean',
-        short: 'h'
+  try {
+    return parseArgs({
+      options: {
+        help: { type: 'boolean', short: 'h' },
+        version: { type: 'boolean', short: 'v' },
+        online: { type: 'boolean' },
+        save: { type: 'boolean' },
+        limit: { type: 'string', short: 'n', default: '10' }
       },
-      version: {
-        type: 'boolean',
-        short: 'v'
-      },
-      online: {
-        type: 'boolean'
-      }
-    },
-    allowPositionals: true
-  })
-
-  return { values, positionals }
+      allowPositionals: true
+    })
+  } catch (error) {
+    throw new CliError(`${error.message}\nRun "rwanda-explorer --help" for usage.`, 1)
+  }
 }
