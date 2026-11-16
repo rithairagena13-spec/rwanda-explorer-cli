@@ -1,12 +1,17 @@
-#!/usr/bin/env node
-
 import { getArguments } from './commands.js'
 import { getPlaces } from './places.js'
 import { getRwandaPlaces } from './api.js'
 
-const VERSION = 'Rwanda Explorer CLI v1.0.0'
+const { values, positionals } = getArguments()
 
-const HELP_TEXT = `
+async function main() {
+  if (values.version) {
+    console.log('Rwanda Explorer CLI v1.0.0')
+    return
+  }
+
+  if (values.help) {
+    console.log(`
 Rwanda Explorer CLI
 
 Usage:
@@ -19,45 +24,35 @@ Options:
   --online     Fetch live Rwanda attractions
   -h, --help   Show help
   -v, --version Show version
-`
-
-function showPlaces(places, emptyMessage) {
-  if (places.length === 0) {
-    console.log(emptyMessage)
-    return
-  }
-
-  console.log(`Found ${places.length} places:\n`)
-  console.table(places)
-}
-
-async function runPlacesCommand(isOnline) {
-  if (isOnline) {
-    console.log('\nDiscovering tourist attractions in Rwanda...\n')
-    const places = await getRwandaPlaces()
-    showPlaces(places, 'No tourist attractions were found.')
-    return
-  }
-
-  const places = await getPlaces()
-  showPlaces(places, 'No places found.')
-}
-
-async function main() {
-  const { values, positionals } = getArguments()
-
-  if (values.version) {
-    console.log(VERSION)
-    return
-  }
-
-  if (values.help) {
-    console.log(HELP_TEXT)
+`)
     return
   }
 
   if (positionals[0] === 'places') {
-    await runPlacesCommand(values.online)
+    let places
+
+    if (values.online) {
+      console.log('\nDiscovering tourist attractions in Rwanda...\n')
+      places = await getRwandaPlaces()
+    } else {
+      places = await getPlaces()
+    }
+
+    if (places.length === 0) {
+      console.log('No places found.')
+      return
+    }
+
+    const tableData = places.map((place) => ({
+      ID: place.id,
+      Name: place.name,
+      Category: place.category,
+      Location: place.location ?? 'Not available'
+    }))
+
+    console.log(`Found ${places.length} places:\n`)
+    console.table(tableData)
+
     return
   }
 
@@ -69,3 +64,4 @@ main().catch((error) => {
   console.error(`Error: ${error.message}`)
   process.exitCode = 1
 })
+
