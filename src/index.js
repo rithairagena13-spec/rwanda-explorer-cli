@@ -4,6 +4,20 @@ import { getRwandaPlaces } from './api.js'
 
 const { values, positionals } = getArguments()
 
+function displayPlaces(places) {
+  const tableData = places.map((place) => ({
+    ID: place.id,
+    Name: place.name,
+    Category: place.category,
+    Location: place.location ??
+      (place.lat != null && place.lon != null
+        ? `${place.lat}, ${place.lon}`
+        : 'Not available')
+  }))
+
+  console.table(tableData)
+}
+
 async function main() {
   if (values.version) {
     console.log('Rwanda Explorer CLI v1.0.0')
@@ -19,11 +33,19 @@ Usage:
 
 Commands:
   places       Explore places across Rwanda
+  search       Search for places by name, location or category
 
 Options:
   --online     Fetch live Rwanda attractions
   -h, --help   Show help
   -v, --version Show version
+
+Examples:
+  rwanda-explorer places
+  rwanda-explorer places --online
+  rwanda-explorer search Kigali
+  rwanda-explorer search Nature
+  rwanda-explorer search "Lake Kivu"
 `)
     return
   }
@@ -43,15 +65,44 @@ Options:
       return
     }
 
-    const tableData = places.map((place) => ({
-      ID: place.id,
-      Name: place.name,
-      Category: place.category,
-      Location: place.location ?? 'Not available'
-    }))
-
     console.log(`Found ${places.length} places:\n`)
-    console.table(tableData)
+    displayPlaces(places)
+
+    return
+  }
+
+  if (positionals[0] === 'search') {
+    const query = positionals.slice(1).join(' ').trim().toLowerCase()
+
+    if (!query) {
+      console.log('Please provide a search term.')
+      console.log('Example: rwanda-explorer search Kigali')
+      return
+    }
+
+    const places = values.online
+      ? await getRwandaPlaces()
+      : await getPlaces()
+
+    const results = places.filter((place) => {
+      const searchableText = [
+        place.name,
+        place.category,
+        place.location,
+        place.lat,
+        place.lon
+      ].join(' ').toLowerCase()
+
+      return searchableText.includes(query)
+    })
+
+    if (results.length === 0) {
+      console.log(`No places found matching "${query}".`)
+      return
+    }
+
+    console.log(`\nFound ${results.length} places matching "${query}":\n`)
+    displayPlaces(results)
 
     return
   }
@@ -64,4 +115,3 @@ main().catch((error) => {
   console.error(`Error: ${error.message}`)
   process.exitCode = 1
 })
-
