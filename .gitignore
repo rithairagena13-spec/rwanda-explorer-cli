@@ -1,3 +1,7 @@
+@"
+node_modules/
+.env
+"@ | Set-Content .gitignore
 
 node_modules/
 .env
