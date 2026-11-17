@@ -10,22 +10,30 @@ import { getRwandaPlaces } from './api.js'
 
 const { values, positionals } = getArguments()
 
-function displayPlaces(places, heading = `Found ${places.length} places:`) {
+function displayPlaces(places, heading = `Found ${places.length} places:`, limit = Infinity) {
   if (places.length === 0) {
     console.log('\nNo places found.')
     return
   }
 
-function displayPlaces(places) {
-  const tableData = places.map((place) => ({
+  const displayedPlaces = places.slice(0, limit)
+
+  const tableData = displayedPlaces.map((place) => ({
     ID: place.id,
     Name: place.name,
     Category: place.category,
-    Location: place.location ?? 'Not available'
+    Location: place.location ??
+      (place.lat != null && place.lon != null
+        ? `${Number(place.lat).toFixed(4)}, ${Number(place.lon).toFixed(4)}`
+        : 'Not available')
   }))
 
   console.log(`\n${heading}\n`)
   console.table(tableData)
+
+  if (places.length > limit) {
+    console.log(`Showing ${limit} of ${places.length} places.`)
+  }
 }
 
 function searchPlaces(places, searchTerm) {
@@ -55,7 +63,6 @@ async function interactiveMenu() {
 
     while (running) {
       console.log(`
-
        RWANDA EXPLORER CLI
 
 Discover beautiful places across Rwanda!
@@ -81,7 +88,9 @@ What would you like to do?
         }
 
         case '2': {
-          const searchTerm = (await rl.question('Enter a place name, category or location: ')).trim()
+          const searchTerm = (
+            await rl.question('Enter a place name, category or location: ')
+          ).trim()
 
           if (!searchTerm) {
             console.log('Please enter a search term.')
@@ -131,13 +140,60 @@ What would you like to do?
           break
         }
 
-        case '4': {
-          console.log('\nDiscovering tourist attractions in Rwanda...\n')
+       case '4': {
+  console.log(`
+Discover Places Online
 
-          const places = await getRwandaPlaces()
-          displayPlaces(places, 'Online tourist attractions:')
-          break
-        }
+1. Search for a specific place
+2. Explore all online places
+3. Return to main menu
+`)
+
+  const onlineChoice = (
+    await rl.question('Enter your choice (1-3): ')
+  ).trim()
+
+  if (onlineChoice === '1') {
+    const searchTerm = (
+      await rl.question('\nEnter a place name, category or location: ')
+    ).trim()
+
+    if (!searchTerm) {
+      console.log('Please enter a search term.')
+      break
+    }
+
+    console.log('\nSearching online...\n')
+
+    const places = await getRwandaPlaces()
+    const results = searchPlaces(places, searchTerm)
+
+    displayPlaces(
+      results,
+      `Online search results for "${searchTerm}":`,
+      20
+    )
+
+  } else if (onlineChoice === '2') {
+    console.log('\nDiscovering places online...\n')
+
+    const places = await getRwandaPlaces()
+
+    displayPlaces(
+      places,
+      'All online tourist attractions:',
+      20
+    )
+
+  } else if (onlineChoice === '3') {
+    console.log('\nReturning to main menu...')
+
+  } else {
+    console.log('\nInvalid choice. Please select 1, 2 or 3.')
+  }
+
+  break
+}
 
         case '5': {
           const savedPlaces = await loadSaved()
@@ -149,7 +205,9 @@ What would you like to do?
           const places = await getPlaces()
           displayPlaces(places)
 
-          const placeId = (await rl.question('\nEnter the ID of the place to save: ')).trim()
+          const placeId = (
+            await rl.question('\nEnter the ID of the place to save: ')
+          ).trim()
 
           const selectedPlace = places.find(
             (place) => String(place.id) === placeId
@@ -196,15 +254,6 @@ What would you like to do?
   }
 }
 
-    Location: place.location ??
-      (place.lat != null && place.lon != null
-        ? `${place.lat}, ${place.lon}`
-        : 'Not available')
-  }))
-
-  console.table(tableData)
-}
-
 async function main() {
   if (values.version) {
     console.log('Rwanda Explorer CLI v1.0.0')
@@ -223,19 +272,18 @@ Usage:
 Commands:
   places       Explore places across Rwanda
   search       Search by name, category or location
-  search       Search for places by name, location or category
 
 Options:
-  --online     Fetch live Rwanda attractions
-  -h, --help   Show help
+  --online      Fetch live Rwanda attractions
+  -h, --help    Show help
   -v, --version Show version
 
 Examples:
-  rwanda-explorer places
-  rwanda-explorer places --online
-  rwanda-explorer search Kigali
-  rwanda-explorer search Nature
-  rwanda-explorer search "Lake Kivu"
+  npm start -- places
+  npm start -- places --online
+  npm start -- search Kigali
+  npm start -- search Nature
+  npm start -- search "Lake Kivu"
 `)
     return
   }
@@ -251,24 +299,6 @@ Examples:
       : await getPlaces()
 
     displayPlaces(places)
-  if (positionals[0] === 'places') {
-    let places
-
-    if (values.online) {
-      console.log('\nDiscovering tourist attractions in Rwanda...\n')
-      places = await getRwandaPlaces()
-    } else {
-      places = await getPlaces()
-    }
-
-    if (places.length === 0) {
-      console.log('No places found.')
-      return
-    }
-
-    console.log(`Found ${places.length} places:\n`)
-    displayPlaces(places)
-
     return
   }
 
@@ -277,11 +307,6 @@ Examples:
 
     if (!searchTerm) {
       console.log('Please provide a search term.')
-    const query = positionals.slice(1).join(' ').trim().toLowerCase()
-
-    if (!query) {
-      console.log('Please provide a search term.')
-      console.log('Example: rwanda-explorer search Kigali')
       return
     }
 
@@ -292,26 +317,6 @@ Examples:
     const results = searchPlaces(places, searchTerm)
 
     displayPlaces(results, `Search results for "${searchTerm}":`)
-    const results = places.filter((place) => {
-      const searchableText = [
-        place.name,
-        place.category,
-        place.location,
-        place.lat,
-        place.lon
-      ].join(' ').toLowerCase()
-
-      return searchableText.includes(query)
-    })
-
-    if (results.length === 0) {
-      console.log(`No places found matching "${query}".`)
-      return
-    }
-
-    console.log(`\nFound ${results.length} places matching "${query}":\n`)
-    displayPlaces(results)
-
     return
   }
 
