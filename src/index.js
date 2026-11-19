@@ -10,7 +10,11 @@ import { getRwandaPlaces } from './api.js'
 
 const { values, positionals } = getArguments()
 
-function displayPlaces(places, heading = `Found ${places.length} places:`, limit = Infinity) {
+function displayPlaces(
+  places,
+  heading = `Found ${places.length} places:`,
+  limit = Infinity
+) {
   if (places.length === 0) {
     console.log('\nNo places found.')
     return
@@ -36,8 +40,38 @@ function displayPlaces(places, heading = `Found ${places.length} places:`, limit
   }
 }
 
+function displayOnlinePlaces(
+  places,
+  heading = 'ONLINE SEARCH RESULTS'
+) {
+  if (places.length === 0) {
+    console.log('\nNo online places found.')
+    return
+  }
+
+  console.log(`\n${heading}\n`)
+
+ 
+  
+places.forEach((place, index) => {
+  const location = place.location ??
+    (place.lat != null && place.lon != null
+      ? `${Number(place.lat).toFixed(4)}, ${Number(place.lon).toFixed(4)}`
+      : 'Not available')
+
+  console.log(`${index + 1}. ${place.name}`)
+  console.log(`   ID: ${place.id}`)
+  console.log(`   Category: ${place.category || 'Other'}`)
+  console.log(`   Location: ${location}`)
+  console.log('')
+})
+
+
+  console.log(`${places.length} online places found.`)
+}
+
 function searchPlaces(places, searchTerm) {
-  const term = searchTerm.toLowerCase()
+  const term = searchTerm.trim().toLowerCase()
 
   return places.filter((place) => {
     const searchableText = [
@@ -50,6 +84,56 @@ function searchPlaces(places, searchTerm) {
 
     return searchableText.includes(term)
   })
+}
+
+async function saveSelectedPlace(rl, places, online = false) {
+  if (places.length === 0) {
+    console.log('\nNo places available to save.')
+    return
+  }
+
+  if (online) {
+    displayOnlinePlaces(places, 'ONLINE PLACES AVAILABLE TO SAVE')
+  } else {
+    displayPlaces(places, 'AVAILABLE LOCAL PLACES:')
+  }
+
+  const placeId = (
+    await rl.question('\nEnter the ID of the place to save: ')
+  ).trim()
+
+  const selectedPlace = places.find(
+    (place) => String(place.id) === placeId
+  )
+
+  if (!selectedPlace) {
+    console.log('Place not found. Please check the ID.')
+    return
+  }
+
+  const savedPlaces = await loadSaved()
+
+  const placeToSave = online
+    ? {
+        ...selectedPlace,
+        id: `online-${selectedPlace.id}`,
+        source: 'online'
+      }
+    : selectedPlace
+
+  const alreadySaved = savedPlaces.some(
+    (place) => String(place.id) === String(placeToSave.id)
+  )
+
+  if (alreadySaved) {
+    console.log('This place is already saved.')
+    return
+  }
+
+  savedPlaces.push(placeToSave)
+  await saveSaved(savedPlaces)
+
+  console.log(`\n${selectedPlace.name} saved successfully!`)
 }
 
 async function interactiveMenu() {
@@ -69,7 +153,7 @@ Discover beautiful places across Rwanda!
 
 What would you like to do?
 
-1. Explore all places
+1. Explore some places
 2. Search for a place
 3. Explore by category
 4. Discover places online
@@ -78,7 +162,9 @@ What would you like to do?
 7. Exit
 `)
 
-      const choice = (await rl.question('Enter your choice (1-7): ')).trim()
+      const choice = (
+        await rl.question('Enter your choice (1-7): ')
+      ).trim()
 
       switch (choice) {
         case '1': {
@@ -140,8 +226,8 @@ What would you like to do?
           break
         }
 
-       case '4': {
-  console.log(`
+        case '4': {
+          console.log(`
 Discover Places Online
 
 1. Search for a specific place
@@ -149,51 +235,50 @@ Discover Places Online
 3. Return to main menu
 `)
 
-  const onlineChoice = (
-    await rl.question('Enter your choice (1-3): ')
-  ).trim()
+          const onlineChoice = (
+            await rl.question('Enter your choice (1-3): ')
+          ).trim()
 
-  if (onlineChoice === '1') {
-    const searchTerm = (
-      await rl.question('\nEnter a place name, category or location: ')
-    ).trim()
+          if (onlineChoice === '1') {
+            const searchTerm = (
+              await rl.question('\nEnter a place name, category or location: ')
+            ).trim()
 
-    if (!searchTerm) {
-      console.log('Please enter a search term.')
-      break
-    }
+            if (!searchTerm) {
+              console.log('Please enter a search term.')
+              break
+            }
 
-    console.log('\nSearching online...\n')
+            console.log('\nSearching online...\n')
 
-    const places = await getRwandaPlaces()
-    const results = searchPlaces(places, searchTerm)
+            const onlinePlaces = await getRwandaPlaces()
+            const places = searchPlaces(onlinePlaces, searchTerm)
 
-    displayPlaces(
-      results,
-      `Online search results for "${searchTerm}":`,
-      20
-    )
+            displayOnlinePlaces(
+              places.slice(0, 20),
+              `ONLINE SEARCH RESULTS FOR "${searchTerm}"`
+            )
+          } else if (onlineChoice === '2') {
+            console.log('\nDiscovering places online...\n')
 
-  } else if (onlineChoice === '2') {
-    console.log('\nDiscovering places online...\n')
+            const places = await getRwandaPlaces()
 
-    const places = await getRwandaPlaces()
+            displayOnlinePlaces(
+              places.slice(0, 20),
+              'ALL ONLINE TOURIST ATTRACTIONS'
+            )
 
-    displayPlaces(
-      places,
-      'All online tourist attractions:',
-      20
-    )
+            if (places.length > 20) {
+              console.log(`Showing 20 of ${places.length} places.`)
+            }
+          } else if (onlineChoice === '3') {
+            console.log('\nReturning to main menu...')
+          } else {
+            console.log('\nInvalid choice. Please select 1, 2 or 3.')
+          }
 
-  } else if (onlineChoice === '3') {
-    console.log('\nReturning to main menu...')
-
-  } else {
-    console.log('\nInvalid choice. Please select 1, 2 or 3.')
-  }
-
-  break
-}
+          break
+        }
 
         case '5': {
           const savedPlaces = await loadSaved()
@@ -202,44 +287,56 @@ Discover Places Online
         }
 
         case '6': {
-          const places = await getPlaces()
-          displayPlaces(places)
+          console.log(`
+Save a Place
 
-          const placeId = (
-            await rl.question('\nEnter the ID of the place to save: ')
+1. Save a local place
+2. Search and save an online place
+3. Return to main menu
+`)
+
+          const saveChoice = (
+            await rl.question('Enter your choice (1-3): ')
           ).trim()
 
-          const selectedPlace = places.find(
-            (place) => String(place.id) === placeId
-          )
+          if (saveChoice === '1') {
+            const places = await getPlaces()
+            await saveSelectedPlace(rl, places)
+          } else if (saveChoice === '2') {
+            const searchTerm = (
+              await rl.question('\nEnter the online place to search for: ')
+            ).trim()
 
-          if (!selectedPlace) {
-            console.log('Place not found. Please check the ID.')
-            break
+            if (!searchTerm) {
+              console.log('Please enter a search term.')
+              break
+            }
+
+            console.log('\nSearching online...\n')
+
+            const onlinePlaces = await getRwandaPlaces()
+            const places = searchPlaces(onlinePlaces, searchTerm)
+
+            if (places.length === 0) {
+              console.log('\nNo matching online places found.')
+              break
+            }
+
+            await saveSelectedPlace(rl, places, true)
+          } else if (saveChoice === '3') {
+            console.log('\nReturning to main menu...')
+          } else {
+            console.log('Invalid choice. Please select 1, 2 or 3.')
           }
 
-          const savedPlaces = await loadSaved()
-
-          const alreadySaved = savedPlaces.some(
-            (place) => String(place.id) === placeId
-          )
-
-          if (alreadySaved) {
-            console.log('This place is already saved.')
-            break
-          }
-
-          savedPlaces.push(selectedPlace)
-          await saveSaved(savedPlaces)
-
-          console.log(`${selectedPlace.name} saved successfully!`)
           break
         }
 
-        case '7':
+        case '7': {
           console.log('\nThank you for exploring Rwanda. Goodbye!')
           running = false
           break
+        }
 
         default:
           console.log('\nInvalid choice. Please select a number from 1 to 7.')

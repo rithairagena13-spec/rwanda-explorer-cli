@@ -4,34 +4,66 @@
     "name": "Lake Kivu",
     "location": "Western Province",
     "category": "Nature",
-    "description": "A beautiful lake known for its scenic views and relaxing atmosphere."
+    "description": "A beautiful lake known for its scenic views and relaxing atmosphere.",
+    "saved": false
   },
   {
     "id": 2,
     "name": "Volcanoes National Park",
     "location": "Northern Province",
     "category": "National Park",
-    "description": "A famous national park known for its mountain landscapes and wildlife."
+    "description": "A famous national park known for its mountain landscapes and wildlife.",
+    "saved": false
   },
   {
     "id": 3,
     "name": "King's Palace Museum",
     "location": "Nyanza, Southern Province",
     "category": "Culture",
-    "description": "A museum showcasing Rwanda's traditional royal history."
+    "description": "A museum showcasing Rwanda's traditional royal history.",
+    "saved": true
   },
   {
     "id": 4,
     "name": "Nyungwe National Park",
     "location": "Southwestern Rwanda",
     "category": "Nature",
-    "description": "A protected rainforest famous for its biodiversity and canopy walkway."
+    "description": "A protected rainforest famous for its biodiversity and canopy walkway.",
+    "saved": false
   },
   {
     "id": 5,
     "name": "Kigali Genocide Memorial",
     "location": "Kigali",
     "category": "History",
-    "description": "A memorial preserving the history of the 1994 Genocide against the Tutsi."
+    "description": "A memorial preserving the history of the 1994 Genocide against the Tutsi.",
+    "saved": false
+  },
+  {
+    "id": "online-2",
+    "name": "Mount Muhabura",
+    "category": "volcano",
+    "lat": -1.383008252636424,
+    "lon": 29.677911393564084,
+    "source": "online",
+    "saved": true
+  },
+  {
+    "id": "online-104",
+    "name": "Kigali Diplomat Hotel",
+    "category": "hotel",
+    "lat": -1.952976552728877,
+    "lon": 30.096604793165508,
+    "source": "online",
+    "saved": true
+  },
+  {
+    "id": "online-18",
+    "name": "Musanze Caves, second entrance",
+    "category": "cave_entrance",
+    "lat": -1.5008406520780069,
+    "lon": 29.61196609372113,
+    "source": "online",
+    "saved": true
   }
 ]
